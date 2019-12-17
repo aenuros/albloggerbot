@@ -4,19 +4,21 @@ const bot = new Twit(config);
 const url = 'https://www.googleapis.com/blogger/v3/blogs/8419556441121513390/posts?maxResults=1&key=' + process.env.BLOGGER;
 
 //get initial blog id
-var request = require('request-promise');
+const request = require('request-promise');
 request(url, function (error, response, body) {
-  console.log('error:', error); // Print the error if one occurred
+// Print the error if one occurred
+  // console.log('error:', error);
   console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
   var myblogpost = JSON.parse(body);
   let oldid = myblogpost["items"][0]["id"];
 
 // every 1 second, check blog id again to see if it has changed
 // if it has, then parse and post to twitter
-  var requestLoop= setInterval(function() {
+  var requestLoop = setInterval(function() {
     var secondrequest = require('request-promise');
     secondrequest(url, function (error, response, body) {
-      console.log('error:', error); // Print the error if one occurred
+      // Print the error if one occurred
+      // console.log('error:', error);
       console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
       var myblogpost2 = JSON.parse(body);
 
@@ -45,13 +47,29 @@ request(url, function (error, response, body) {
             }
           })
         };
-      }
-      else {
-        console.log("No new post.")
-      }
 
-      //other social media go below
+        // facebook //
+        let facebookstring = thecontent.split("[!FACEBOOK!]")[1];
+        console.log("Facebook string" + "text" + facebookstring + "Type:" + typeof(facebookstring));
 
+        if (typeof(facebookstring) != 'undefined') {
+          console.log('facebook');
+          //  facebookstring  +  myblogpost2["items"][0]["url"]
+          const postTextOptions = {
+            method: 'POST',
+            uri: `https://graph.facebook.com/v5.0/147111589252801/feed`,
+            qs: {
+              access_token: process.env.PAGE_ACCESS_TOKEN,
+              message: facebookstring,
+              link: myblogpost2["items"][0]["url"]
+            }
+          };
+          request(postTextOptions);
+        } else {
+            console.log("No new post.")
+          }
+        }
     })
-  },1000);
+  },18000000);
+  // check every 5 hours
 });
